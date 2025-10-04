@@ -86,16 +86,18 @@ export default function ContentSection() {
     let currentVy = vy;
     const gravity = 100; // 重力加速度
     const startTime = Date.now();
-    const duration = 3000; // 2秒动画
 
-    const animate = () => {
+    const duration = 3000; // 2秒动画
+    let lastTimestamp = 0;
+    const animate = (timestamp) => {
       const elapsed = (Date.now() - startTime) / 1000;
       
       if (elapsed > duration / 1000) {
         particle.remove();
         return;
       }
-
+      const deltaTime = (timestamp - lastTimestamp);
+      lastTimestamp = timestamp;
       // 物理计算：抛物线运动
       currentX += currentVx * 0.016; // 假设60fps
       currentY += currentVy * 0.016;
@@ -115,8 +117,8 @@ export default function ContentSection() {
 
       requestAnimationFrame(animate);
     };
-
-    animate();
+    lastTimestamp = Date.now();
+    animate(Date.now());
   };
 
   return (

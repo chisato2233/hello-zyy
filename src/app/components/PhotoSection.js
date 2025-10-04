@@ -125,7 +125,7 @@ const PhotoSection = forwardRef((props, ref) => {
 
     // 3. 主要横向滚动 - 以照片容器为中心触发
     const horizontalTween = gsap.to(photos.children, {
-      xPercent: -100 * (photos.children.length - 1),
+      xPercent: -100 * (photos.children.length + 1),
       ease: "none",
     });
 
@@ -255,7 +255,7 @@ const PhotoSection = forwardRef((props, ref) => {
             ref={photosRef}
             className="flex gap-8 relative z-10 py-12"
             style={{ 
-              width: `${photos.length * 432}px`, // 400px照片 + 32px gap
+              width: `${(photos.length+1) * 432}px`, // 400px照片 + 32px gap
               paddingLeft: '50vw', // 使用视口宽度的一半作为起始留白
               paddingRight: '50vw', // 使用视口宽度的一半作为结束留白
             }}

@@ -15,9 +15,17 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const photoSectionRef = useRef(null);
+  const backgroundEffectsRef = useRef(null);
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
+  };
+
+  // 背景颜色变化处理函数
+  const handleBackgroundChange = (darkProgress) => {
+    if (backgroundEffectsRef.current) {
+      backgroundEffectsRef.current.setDarkProgress(darkProgress);
+    }
   };
 
   // 初始化完成后刷新ScrollTrigger
@@ -42,23 +50,16 @@ export default function Home() {
       
       {!isLoading && (
         <div className="min-h-screen relative overflow-hidden scrollbar-hide">
-          <BackgroundEffects />
+          <BackgroundEffects ref={backgroundEffectsRef} />
           <div className="relative z-10">
             <HeroSection />
             
-            {/* PhotoSection前的分割条 */}
-            <div className="relative z-20">
-              <div className="h-2 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 shadow-lg" />
-              <div className="h-1 bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300" />
-            </div>
             
-            <PhotoSection ref={photoSectionRef} />
+            <PhotoSection 
+              ref={photoSectionRef} 
+              onBackgroundChange={handleBackgroundChange}
+            />
             
-            {/* PhotoSection后的分割条 */}
-            <div className="relative z-20">
-              <div className="h-1 bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300" />
-              <div className="h-2 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 shadow-lg" />
-            </div>
             
             <ContentSection />
           </div>

@@ -13,6 +13,9 @@ const PhotoSection = forwardRef((props, ref) => {
   const photosRef = useRef(null);
   const titleRef = useRef(null);
   
+  // 从props中获取背景控制函数
+  const { onBackgroundChange } = props;
+  
   // 照片数据 - 使用public文件夹中的本地图片
   const photos = [
     {
@@ -86,7 +89,7 @@ const PhotoSection = forwardRef((props, ref) => {
     // 1. 标题动画 - 创造滞留效果，让标题在横向滚动期间保持在视口中
     gsap.timeline({
       scrollTrigger: {
-        trigger: container,
+        trigger: ref.current,
         start: "top 80%",
         end: () => `+=${scrollDistance + 500}`, // 延长动画范围，覆盖整个横向滚动期间
         scrub: 1,
@@ -94,25 +97,18 @@ const PhotoSection = forwardRef((props, ref) => {
       }
     })
     .to(title, {
-      y: -50,
+      y: 120,
       scale: 1.2,
       opacity: 1,
       duration: 0.3, // 快速进入
       ease: "power2.out"
     })
-    .to(title, {
-      y: -80, // 继续轻微上移，创造滞留感
-      scale: 1.1, // 轻微缩小
-      duration: 0.4, // 滞留阶段
-      ease: "none"
-    })
-    .to(title, {
-      y: -120, // 最终离开
-      scale: 0.9,
-      opacity: 0.8,
-      duration: 0.3, // 缓慢离开
-      ease: "power2.in"
-    });
+    // .to(title, {
+    //   y: 120, // 继续轻微上移，创造滞留感
+    //   scale: 1.1, // 轻微缩小
+    //   duration: 0.4, // 滞留阶段
+    //   ease: "none"
+    // })
 
     // 2. 照片容器滑入 - 与标题滞留效果配合
     gsap.to(photos, {
@@ -142,7 +138,7 @@ const PhotoSection = forwardRef((props, ref) => {
       animation: horizontalTween,
       anticipatePin: 1,
       invalidateOnRefresh: false,
-      markers: true,
+      markers: false,
       onUpdate: (self) => {
         console.log('横向滚动进度:', Math.round(self.progress * 100) + '%');
         
@@ -158,6 +154,30 @@ const PhotoSection = forwardRef((props, ref) => {
       onEnter: () => console.log('照片容器到达中心，开始横向滚动'),
       onLeave: () => console.log('横向滚动完成'),
     });
+
+    // 背景颜色控制 - 基于整个section的滚动进度
+    if (onBackgroundChange) {
+      ScrollTrigger.create({
+        trigger: ref.current, // 🎯 使用PhotoSection本身作为触发器
+        start: "top bottom",
+        end: "bottom top",
+        scrub: 1,
+        markers: true,
+        onUpdate: (self) => {
+          // 计算背景变化进度
+          // 0-0.3: 浅色到深色过渡
+          // 0.3-0.7: 保持深色
+          // 0.7-1: 深色到浅色过渡
+          if (self.progress <= 0.3) {
+            onBackgroundChange(self.progress / 0.3);
+          } else if (self.progress <= 0.7) {
+            onBackgroundChange(1);
+          } else {
+            onBackgroundChange(1 - ((self.progress - 0.7) / 0.3));
+          }
+        }
+      });
+    }
 
     // 鼠标悬停效果
     Array.from(photos.children).forEach((photo) => {
@@ -197,53 +217,43 @@ const PhotoSection = forwardRef((props, ref) => {
       className="relative photo-section overflow-hidden"
       style={{ minHeight: '200vh' }} // 增加高度确保动画完整播放
     >
-      {/* 多层背景效果 */}
-      <div className="absolute inset-0">
-        {/* 主背景渐变 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50" />
-
-        {/* 网格背景 */}
-        <div className="absolute inset-0 opacity-[0.02]" 
-             style={{
-               backgroundImage: `radial-gradient(circle at 1px 1px, rgba(99,102,241,0.3) 1px, transparent 0)`,
-               backgroundSize: '40px 40px'
-             }} 
-        />
-      </div>
+      {/* 透明背景 - 由BackgroundEffects控制 */}
       
       <div 
         ref={containerRef} 
         className="w-full max-w-7xl mx-auto relative z-10 flex flex-col items-center justify-center min-h-screen px-4"
       >
-        {/* 增强的标题设计 */}
-        <div ref={titleRef} className="text-center mb-8 relative">
-          {/* 标题背景装饰 */}
+        {/* 优雅深色标题设计 */}
+        <div ref={titleRef} className="text-center mb-12 relative">
+          {/* 标题背景光晕 */}
           <div className="absolute inset-0 -z-10">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-32 bg-gradient-to-r from-transparent via-white/20 to-transparent blur-xl" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-32 bg-gradient-to-r from-transparent via-white/5 to-transparent blur-2xl" />
           </div>
           
           {/* 主标题 */}
           <div className="relative">
-            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-1 leading-tight">
-              美好回忆照片墙
+            <h2 className="text-5xl md:text-6xl font-light text-white mb-3 leading-tight tracking-wide">
+              照片墙
             </h2>
             
-            {/* 标题下划线装饰 */}
-            <div className="flex justify-center mb-2">
-              <div className="h-1 w-24 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full" />
+            {/* 优雅的下划线 */}
+            <div className="flex justify-center mb-4">
+              <div className="h-px w-32 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             </div>
+            
+            {/* 副标题 */}
+            <p className="text-gray-400 text-sm font-light tracking-widest uppercase">
+              Memories in Motion
+            </p>
           </div>
         </div>
 
-        {/* 照片容器 - 现代化横向布局 */}
-        <div className="relative overflow-hidden rounded-2xl w-full">
-          {/* 照片容器背景装饰 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-white/10 backdrop-blur-sm border border-white/20 rounded-2xl" />
-          
-          {/* 照片轨道 - 精确计算宽度 */}
+        {/* 优雅深色照片容器 */}
+        <div className="relative overflow-hidden w-full">
+          {/* 照片轨道 */}
           <div 
             ref={photosRef}
-            className="flex gap-8 relative z-10 py-8"
+            className="flex gap-8 relative z-10 py-12"
             style={{ 
               width: `${photos.length * 432}px`, // 400px照片 + 32px gap
               paddingLeft: '50vw', // 使用视口宽度的一半作为起始留白
@@ -260,10 +270,7 @@ const PhotoSection = forwardRef((props, ref) => {
               </div>
             ))}
           </div>
-          
-          {/* 轨道边缘渐变遮罩 */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-indigo-50 to-transparent pointer-events-none z-20" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-pink-50 to-transparent pointer-events-none z-20" />
+
         </div>
 
       </div>

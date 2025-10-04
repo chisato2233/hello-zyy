@@ -162,7 +162,7 @@ const PhotoSection = forwardRef((props, ref) => {
         start: "top bottom",
         end: "bottom top",
         scrub: 1,
-        markers: true,
+        markers: false,
         onUpdate: (self) => {
           // 计算背景变化进度
           // 0-0.3: 浅色到深色过渡
